@@ -1,3 +1,3 @@
 #Cálculos y datos para MundoPelota.com
 
-Vayan a [http://mundopelota.com].
+Vayan a http://mundopelota.com.
