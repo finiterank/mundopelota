@@ -5,7 +5,7 @@ Ranking Fifa
 library(ggplot2)
 library(reshape2)
 library(RColorBrewer)
-
+library(plyr)
 ```
 
 ```{r}
@@ -28,17 +28,28 @@ ggsave(filename="images/southamerica.loess.png", p, width=10, height=8)
 ```{r}
 variables.pts <- names(big.fifa.table)[grep(".pts", names(big.fifa.table))]
 points <- big.fifa.table[,variables.pts]
-points <- as.data.frame(t(rankings))
-points <- rankings[complete.cases(rankings),]
+points <- as.data.frame(t(points))
+points <- points[complete.cases(points),]
 rownames(points) <- gsub(".pts", "", rownames(points))
 ```
 
 ```{r}
-points.cluster <- kmeans(points, 5)
-champs <- ranking.cluster$cluster == 3
+variables.rnk <- names(big.fifa.table)[grep(".rnk", names(big.fifa.table))]
+rankings <- big.fifa.table[,variables.rnk]
+rankings <- as.data.frame(t(rankings))
+rankings <- rankings[complete.cases(rankings),]
+rownames(rankings) <- gsub(".rnk", "", rownames(points))
+```
+
+```{r}
+points.cluster <- kmeans(rankings, 5)
+promedios <- rowMeans(points, na.rm=T)
+prom.clus <- data.frame(proms= promedios, cluster= points.cluster$cluster)
+promedios.por.cluster <- ddply(prom.clus, ~cluster, summarise, promedio = mean(proms))
+champ.cluster <- promedios.por.cluster$cluster[promedios.por.cluster$promedio == max(promedios.por.cluster$promedio)]
+champs <- points.cluster$cluster == champ.cluster
 champs <- which(champs)
 champs <- names(champs)
-champs
 ```
 
 ```{r}
@@ -49,7 +60,7 @@ paises.df$fecha <- as.Date(rownames(big.fifa.table))
 paises.melted <- melt(paises.df, id.vars="fecha")
 levels(paises.melted$variable) <- paises
 labs <- paste(toupper(substring(paises, 1, 1)), substring(paises, 2), sep = "")
-p <- ggplot(paises.melted[paises.melted$fecha > as.Date("1jan2005", "%d%b%Y"),], aes(x=fecha, y=value, group=variable, color=variable))
+p <- ggplot(paises.melted[paises.melted$fecha > as.Date("1jan2000", "%d%b%Y"),], aes(x=fecha, y=value, group=variable, color=variable))
 colores <- colorRampPalette(brewer.pal(9,"Set1"))
 p <- p + geom_smooth(method="loess", size=1.5) + xlab("Fecha") + ylab("Posición en la lista de la FIFA") + scale_color_manual(name="País", values=colores(24), labels=labs)
 ggsave(filename="images/top.ranking.loess.png", p, width=10, height=8)
