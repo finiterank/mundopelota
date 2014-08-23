@@ -1,4 +1,4 @@
-#Cálculos y datos para MundoPelota.com
+#Estadísticas de jugadores Mundial de Fútbol de Brasil 2014
 
 Durante el mundial recopilé estos datos para jugar con ellos en  http://mundopelota.com
 
